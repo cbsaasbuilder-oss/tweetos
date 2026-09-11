@@ -1,0 +1,16 @@
+tmp/
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+*.env
+!deploy/tweetos.env.example
+data/
+*.sqlite3*
+*.pdf
+references/tweets.jsonl
+references/corpus-summary.json
+references/style.md
+twitter-*.zip
+archive*.zip

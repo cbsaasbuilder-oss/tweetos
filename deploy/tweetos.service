@@ -1,0 +1,28 @@
+[Unit]
+Description=Tweetos private Telegram assistant
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=tweetos
+Group=tweetos
+WorkingDirectory=/opt/tweetos
+EnvironmentFile=/etc/tweetos.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 /opt/tweetos/scripts/telegram_bot.py
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=150
+StateDirectory=tweetos
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

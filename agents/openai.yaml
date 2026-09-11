@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tweetos"
+  short_description: "Tes tweets, ton style et ta stratégie build in public"
+  default_prompt: "Utilise $tweetos pour rédiger un tweet à partir de mon avancée du jour, dans mon style et selon mes règles éditoriales."

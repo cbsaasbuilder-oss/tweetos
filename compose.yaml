@@ -1,0 +1,31 @@
+services:
+  tweetos:
+    build: .
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    environment:
+      TWEETOS_STATE_DIR: /var/lib/tweetos
+      TWEETOS_PERSONAL_DIR: /var/lib/tweetos/references
+    volumes:
+      - ./data:/var/lib/tweetos
+      - type: bind
+        source: ${TWEETOS_HISTORY_DIR:-./data/references}
+        target: /var/lib/tweetos/references
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 150s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

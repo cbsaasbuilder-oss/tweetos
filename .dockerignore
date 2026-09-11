@@ -1,0 +1,8 @@
+**
+!Dockerfile
+!SKILL.md
+!scripts/
+!scripts/telegram_bot.py
+!scripts/archive_tweets.py
+!references/
+!references/guidelines.md
