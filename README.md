@@ -16,14 +16,14 @@ The workflow is:
 2. Import the ZIP to create `tweets.jsonl` and `corpus-summary.json`.
 3. Ask Codex or Claude Code to analyze these tweets and create `style.md`.
 4. For the Telegram bot, place these **three files** in a folder accessible to Docker, selected with `TWEETOS_HISTORY_DIR`.
-5. Send `/status` to the bot, then send your ideas as text messages.
+5. Send `/status` to the bot, then send your ideas as text messages or images.
 
 | Item | What you provide |
 |---|---|
 | Input archive | A local ZIP file, selected by its path with `--archive` |
 | Expected account | Your X username, passed to `--account` during import and `TWEETOS_X_ACCOUNT` in `.env` |
 | History used by the bot | A folder containing the three prepared files, selected with `TWEETOS_HISTORY_DIR` |
-| Ideas to rewrite | Text messages in Telegram after setup is complete |
+| Ideas to rewrite | Text messages or images with optional captions in Telegram after setup is complete |
 
 **Uploading the ZIP through Telegram is not supported.** Setting a username does not automatically download tweets. Importing prepares the tweet dataset; creating the style profile is a separate step with an assistant that can access your files. Each installation supports one authorized Telegram user and their history.
 
@@ -48,7 +48,7 @@ The service receives your private Telegram messages, loads the skill's rules and
 
 1. In Telegram, open [@BotFather](https://t.me/BotFather), send `/newbot`, and follow the instructions. Keep the token for your `.env` configuration file.
 2. Open a conversation with your new bot and send `/start`.
-3. Prepare an OpenAI API key and the exact ID of a text model available to your API project that supports the Responses API. Set the model with `OPENAI_MODEL`.
+3. Prepare an OpenAI API key and the exact ID of a model available to your API project that supports the Responses API with image inputs and text output. Set the model with `OPENAI_MODEL`.
 
 Sources: [creating Telegram bots](https://core.telegram.org/bots/features#botfather), [long polling](https://core.telegram.org/bots/api#getupdates), [OpenAI Responses API](https://developers.openai.com/api/reference/python/resources/responses/methods/create).
 
@@ -213,7 +213,21 @@ For each request, the bot loads your style profile and selects up to six histori
 
 Without a profile, the bot can draft from your brief and the guidelines, but does not claim to know your personal voice. Recent exchanges, your profile, and a few relevant tweet examples are sent to the OpenAI API to generate a response. The service uses `store=false` and manages context locally. This does not guarantee that providers retain no data.
 
-This version supports text only: it cannot read links, browse the web, import attachments, or publish on X. For news, provide the source content; the bot cannot independently verify whether it is current. A Telegram token, an OpenAI key, and an active runtime are required.
+This version supports text and images: it cannot read links, browse the web, import archives or other documents, process videos or voice messages, or publish on X. For news, provide the source content; the bot cannot independently verify whether it is current. A Telegram token, an OpenAI key, and an active runtime are required.
+
+### Read images and screenshots
+
+Send a photo or screenshot in Telegram, optionally with a caption such as **"Lis cette capture et fais un tweet dans mon style"**. The bot receives both the image and your caption. For small text, send the original image as a **file/document without compression**. JPEG, PNG and WebP are supported, up to **5 MiB per image** (shown as 5 Mo in the bot).
+
+You can also send an image without a caption. The bot uses the conversation to understand the request; without a clear request, it briefly describes the image and asks what you want to do with it. Then send **"Fais-en un tweet"**, **"Recopie le texte"** or another follow-up. Images remain available in the last six exchanges, including after a restart. Multiple images, including Telegram albums, are currently processed as separate messages and replies; send a final instruction to work with the images still in that context.
+
+Images are downloaded from Telegram and passed to OpenAI as image inputs. The Telegram download URL, which contains the bot token, is never sent to OpenAI. Image data is stored with the local SQLite conversation history in `data/telegram.sqlite3`, and is resent while it remains in context. `/reset` removes the conversation, including its images, from active local history; it does not delete the original Telegram messages or copies in backups. Image input uses API tokens, including on follow-up requests. Treat the data folder and its backups as private.
+
+The prompt distinguishes your message from instructions written inside an image and asks the model to flag unreadable or uncertain details. Image reading can still make mistakes. The configured `OPENAI_MODEL` must support vision; the bot does not automatically switch models. `--check` validates local configuration only, so send an actual image to verify your project's model access.
+
+After updating the source on your Docker host, rebuild and restart with `docker compose up -d --build`. A plain container restart does not load updated source code. For systemd, update the installed source and restart `tweetos`.
+
+Implementation references: [OpenAI image inputs](https://developers.openai.com/api/docs/guides/images-vision) and [Telegram file downloads](https://core.telegram.org/bots/api#getfile).
 
 ### Operations and troubleshooting
 
